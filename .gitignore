@@ -9,7 +9,6 @@ src/java/out
 src/java/generated
 src/java/*.iml
 src/java/lib/ivy-*.jar
-src/dotnet/generated
 src/dotnet/ZooKeeperNet/_Reshaper
 src/dotnet/ZooKeeperNet/bin
 src/dotnet/ZooKeeperNet/obj
