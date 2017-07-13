@@ -4,13 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
-    using log4net;
     using Org.Apache.Zookeeper.Data;
-
+    using ZooKeeperNet.Log;
 
     public class DistributedQueue
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(DistributedQueue));
+        //private static readonly ILog LOG = LogManager.GetLogger(typeof(DistributedQueue));
 
         private readonly string dir;
         private readonly ZooKeeper zookeeper;
@@ -27,7 +26,7 @@
         public DistributedQueue(ZooKeeper zookeeper, string dir, List<ACL> acl)
         {
             this.zookeeper = zookeeper;
-            this.dir = dir;            
+            this.dir = dir;
             if (acl != null) this.acl = acl;
         }
 
@@ -42,7 +41,8 @@
                     bool matches = childName.Length > prefix.Length && childName.Substring(0, prefix.Length) == prefix;
                     if (!matches)
                     {
-                        LOG.WarnFormat("Found child node with improper name: {0}", childName);
+                        //LOG.WarnFormat("Found child node with improper name: {0}", childName);
+                        Logger.Write(string.Format("Found child node with improper name: {0}", childName), MsgType.Warning);
                         continue;
                     }
                     string suffix = childName.Substring(prefix.Length);
@@ -51,7 +51,9 @@
                 }
                 catch (InvalidCastException e)
                 {
-                    LOG.WarnFormat("Found child node with improper format : {0} {1} {2}", childName, e, e.StackTrace);
+                    //LOG.WarnFormat("Found child node with improper format : {0} {1} {2}", childName, e, e.StackTrace);
+                    Logger.Write(string.Format("Found child node with improper format : {0} {1} {2}", childName, e.Message, e.StackTrace), MsgType.Warning);
+
                 }
             }
 
@@ -197,7 +199,7 @@
 
             public void Process(WatchedEvent @event)
             {
-                LOG.DebugFormat("Watcher fired on path: {0} state: {1} type {2}", @event.Path, @event.State, @event.Type);
+                //LOG.DebugFormat("Watcher fired on path: {0} state: {1} type {2}", @event.Path, @event.State, @event.Type);
                 reset.Set();
             }
 

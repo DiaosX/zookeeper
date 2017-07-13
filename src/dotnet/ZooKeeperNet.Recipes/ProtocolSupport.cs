@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.Text;
     using System.Threading;
-    using log4net;
     using Org.Apache.Zookeeper.Data;
- 
+    using ZooKeeperNet.Log;
+
     public abstract class ProtocolSupport : IDisposable
     {
-        protected static readonly ILog LOG = LogManager.GetLogger(typeof(ProtocolSupport));
+        //protected static readonly ILog LOG = LogManager.GetLogger(typeof(ProtocolSupport));
 
         private int closed;
 
@@ -46,21 +46,22 @@
                 }
                 catch (KeeperException.SessionExpiredException e)
                 {
-                    LOG.WarnFormat("Session expired for: {0} so reconnecting due to: {1} {2}",Zookeeper,e, e.StackTrace);
+                    Logger.Write(string.Format("Session expired for: {0} so reconnecting due to: {1} {2}", Zookeeper, e.Message, e.StackTrace),MsgType.Warning);
+                    //LOG.WarnFormat("Session expired for: {0} so reconnecting due to: {1} {2}",Zookeeper,e, e.StackTrace);
                     throw e;
                 }
                 catch (KeeperException.ConnectionLossException e)
                 {
                     if (exception == null)
                         exception = e;
-                    LOG.DebugFormat("Attempt {0} failed with connection loss so attempting to reconnect: {1} {2}", e, e.StackTrace);
+                    // LOG.DebugFormat("Attempt {0} failed with connection loss so attempting to reconnect: {1} {2}", e, e.StackTrace);
                     DoRetryDelay(i);
                 }
                 catch (TimeoutException e)
                 {
                     if (exception == null)
                         exception = KeeperException.Create(KeeperException.Code.OPERATIONTIMEOUT);
-                    LOG.DebugFormat("Attempt {0} failed with connection loss so attempting to reconnect: {1} {2}", e, e.StackTrace);
+                    //LOG.DebugFormat("Attempt {0} failed with connection loss so attempting to reconnect: {1} {2}", e, e.StackTrace);
                     DoRetryDelay(i);
                 }
             }
@@ -90,12 +91,12 @@
                 var components = path.Split(PathUtils.PathSeparatorCharAsArray, StringSplitOptions.RemoveEmptyEntries);
                 var pathBuilder = new StringBuilder(path.Length);
 
-                for (var i=0; i < components.Length; ++i)
+                for (var i = 0; i < components.Length; ++i)
                 {
                     // Create a loop-scoped variable to avoid closure troubles
                     // inside RetryOperation.
                     var isLastComponent = (i == components.Length - 1);
-                    
+
                     var component = components[i];
 
                     pathBuilder.Append(PathUtils.PathSeparator);
@@ -116,11 +117,14 @@
             }
             catch (KeeperException e)
             {
-                LOG.WarnFormat("Caught: {0} {1}", e, e.StackTrace);
+                //LOG.WarnFormat("Caught: {0} {1}", e, e.StackTrace);
+                Logger.Write(string.Format("Caught: {0} {1}", e.Message, e.StackTrace),MsgType.Warning);
             }
             catch (ThreadInterruptedException e)
             {
-                LOG.WarnFormat("Caught: {0} {1}", e, e.StackTrace);
+                // LOG.WarnFormat("Caught: {0} {1}", e, e.StackTrace);
+                Logger.Write(string.Format("Caught: {0} {1}", e.Message, e.StackTrace), MsgType.Warning);
+
             }
         }
 
@@ -130,7 +134,7 @@
          */
         protected bool IsDisposed()
         {
-            return Interlocked.CompareExchange(ref closed,0,0) == 1;
+            return Interlocked.CompareExchange(ref closed, 0, 0) == 1;
         }
 
         /**
@@ -147,7 +151,8 @@
                 }
                 catch (ThreadInterruptedException e)
                 {
-                    LOG.WarnFormat("Failed to sleep: {0} {1}", e, e.StackTrace);
+                    //LOG.WarnFormat("Failed to sleep: {0} {1}", e, e.StackTrace);
+                    Logger.Write(string.Format("Failed to sleep: {0} {1}", e.Message, e.StackTrace),MsgType.Warning);
                 }
             }
         }

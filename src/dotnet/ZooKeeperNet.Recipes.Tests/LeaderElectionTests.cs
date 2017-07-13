@@ -22,12 +22,11 @@ using NUnit.Framework;
 using ZooKeeperNet;
 using ZooKeeperNet.Recipes;
 using ZooKeeperNet.Tests;
-using log4net;
 
 namespace ZooKeeperNetRecipes.Tests {
 	[TestFixture]
 	public class LeaderElectionTests : AbstractZooKeeperTests {
-		private static ILog LOG = LogManager.GetLogger(typeof (LeaderElectionTests));
+		//private static ILog LOG = LogManager.GetLogger(typeof (LeaderElectionTests));
 		private ZooKeeper[] clients;
 
 		[TearDown]
@@ -46,7 +45,7 @@ namespace ZooKeeperNetRecipes.Tests {
 
 			public void TakeLeadership() {
 				Leader = b;
-				LOG.DebugFormat("Leader: {0:x}", b);
+				//LOG.DebugFormat("Leader: {0:x}", b);
 			}
 		}
 

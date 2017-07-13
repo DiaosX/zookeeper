@@ -15,7 +15,7 @@
  *  limitations under the License.
  *
  */
-﻿namespace ZooKeeperNet.Tests
+namespace ZooKeeperNet.Tests
 {
     using System;
     using System.Collections.Concurrent;
@@ -23,14 +23,14 @@
     using System.Linq;
     using System.Text;
     using System.Threading;
-    using log4net;
     using NUnit.Framework;
     using Org.Apache.Zookeeper.Data;
+    using ZooKeeperNet.Log;
 
     [TestFixture]
     public class ClientTests : AbstractZooKeeperTests
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(ClientTests));
+        //private static readonly ILog LOG = LogManager.GetLogger(typeof(ClientTests));
 
         /** Verify that pings are sent, keeping the "idle" client alive */
         [Test]
@@ -51,7 +51,7 @@
                     zkWatchCreator.Create("/" + node + i, new byte[0], Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
                 }
                 for (int i = 0; i < 10; i++)
-                {                      
+                {
                     zkIdle.Exists("/" + node + i, true);
                 }
                 for (int i = 0; i < 10; i++)
@@ -75,7 +75,7 @@
             }
         }
 
-       
+
         [Test]
         public void testClientWithMultipleHosts()
         {
@@ -129,8 +129,8 @@
                 }
                 catch (KeeperException.InvalidACLException e)
                 {
-                    LOG.Info("Test successful, invalid acl received : "
-                             + e.ErrorMessage);
+                    //LOG.Info("Test successful, invalid acl received : "+ e.ErrorMessage);
+                    Logger.Write("Test successful, invalid acl received : " + e.ErrorMessage, MsgType.Information);
                 }
                 try
                 {
@@ -142,8 +142,9 @@
                 }
                 catch (KeeperException.InvalidACLException e)
                 {
-                    LOG.Info("Test successful, invalid acl received : "
-                             + e.ErrorMessage);
+                    //LOG.Info("Test successful, invalid acl received : "+ e.ErrorMessage);
+                    Logger.Write("Test successful, invalid acl received : " + e.ErrorMessage, MsgType.Information);
+
                 }
                 zk.AddAuthInfo("digest", "ben:passwd".GetBytes());
                 zk.Create(name, new byte[0], Ids.CREATOR_ALL_ACL, CreateMode.Persistent);
@@ -190,7 +191,8 @@
                     }
                     catch (ThreadInterruptedException)
                     {
-                        LOG.Warn("ignoring interrupt during @event.put");
+                        //LOG.Warn("ignoring interrupt during @event.put");
+                        Logger.Write("ignoring interrupt during @event.put", MsgType.Warning);
                     }
                 }
             }
@@ -334,11 +336,14 @@
             MyWatcher watcher = new MyWatcher();
             using (var zk = CreateClient(watcher))
             {
-                LOG.Info("Before Create /benwashere");
+                //LOG.Info("Before Create /benwashere");
+                Logger.Write("Before Create /benwashere", MsgType.Information);
                 string benwashere = "/" + Guid.NewGuid() + "benwashere";
                 zk.Create(benwashere, "".GetBytes(), Ids.OPEN_ACL_UNSAFE,
                           CreateMode.Persistent);
-                LOG.Info("After Create /benwashere");
+                //LOG.Info("After Create /benwashere");
+                Logger.Write("After Create /benwashere", MsgType.Information);
+
                 try
                 {
                     zk.SetData(benwashere, "hi".GetBytes(), 57);
@@ -352,18 +357,23 @@
                 {
                     Assert.Fail("Should have gotten BadVersion exception");
                 }
-                LOG.Info("Before Delete /benwashere");
+                //LOG.Info("Before Delete /benwashere");
+                Logger.Write("Before Delete /benwashere", MsgType.Information);
+
                 zk.Delete(benwashere, 0);
-                LOG.Info("After Delete /benwashere");
+                //LOG.Info("After Delete /benwashere");
+                Logger.Write("After Delete /benwashere", MsgType.Information);
+
             }
 
             //LOG.Info("Closed client: " + zk.describeCNXN());
+
             Thread.Sleep(2000);
 
             using (var zk = CreateClient(watcher))
             {
                 //LOG.Info("Created a new client: " + zk.describeCNXN());
-                LOG.Info("Before Delete /");
+                //LOG.Info("Before Delete /");
                 try
                 {
                     zk.Delete("/", -1);
@@ -378,9 +388,13 @@
                 string pat = "/pat" + Guid.NewGuid();
                 string patPlusBen = pat + "/ben";
                 zk.Create(pat, "Pat was here".GetBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
-                LOG.Info("Before Create /ben");
+                //LOG.Info("Before Create /ben");
+                Logger.Write("Before Create /ben ", MsgType.Information);
+
                 zk.Create(patPlusBen, "Ben was here".GetBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
-                LOG.Info("Before GetChildren /pat");
+                //LOG.Info("Before GetChildren /pat");
+                Logger.Write("Before GetChildren /pat ", MsgType.Information);
+
                 var children = zk.GetChildren(pat, false);
                 Assert.AreEqual(1, children.Count());
                 Assert.AreEqual("ben", children.ElementAt(0));
@@ -402,17 +416,19 @@
                     {
                         Assert.AreEqual(null, zk.Exists(frog, true));
                     }
-                    LOG.Info("Comment: asseting passed for frog setting /");
+                    //LOG.Info("Comment: asseting passed for frog setting /");
+                    Logger.Write("Comment: asseting passed for frog setting / ", MsgType.Information);
+
                 }
                 catch (KeeperException.NoNodeException)
                 {
                     // OK, expected that
                 }
-                zk.Create(frog, "hi".GetBytes(), Ids.OPEN_ACL_UNSAFE,
-                          CreateMode.Persistent);
+                zk.Create(frog, "hi".GetBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
                 // the first poll is just a session delivery
-                LOG.Info("Comment: checking for events Length "
-                         + watcher.events.Count);
+                //LOG.Info("Comment: checking for events Length "+ watcher.events.Count);
+                Logger.Write("Comment: checking for events Length " + watcher.events.Count, MsgType.Information);
+
                 WatchedEvent @event;
                 watcher.events.TryTake(out @event, TimeSpan.FromSeconds(3000));
                 Assert.AreEqual(frog, @event.Path);
@@ -455,7 +471,7 @@
                     }
                     zk.Delete(patPlusBen + "/" + name, stat.Version);
                 }
-                
+
                 watcher.events.TryTake(out @event, TimeSpan.FromSeconds(3));
                 Assert.AreEqual(patPlusBen, @event.Path);
                 Assert.AreEqual(EventType.NodeChildrenChanged, @event.Type);

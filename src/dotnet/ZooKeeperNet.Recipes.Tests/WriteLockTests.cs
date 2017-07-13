@@ -2,16 +2,16 @@
 {
     using System;
     using System.Threading;
-    using log4net;
     using NUnit.Framework;
     using ZooKeeperNet;
     using ZooKeeperNet.Recipes;
     using ZooKeeperNet.Tests;
+    using ZooKeeperNet.Log;
 
     [TestFixture]
     public class WriteLockTests : AbstractZooKeeperTests
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(WriteLockTests));
+       // private static readonly ILog LOG = LogManager.GetLogger(typeof(WriteLockTests));
 
         protected int sessionTimeout = 10 * 1000;
         protected String dir = "/" + Guid.NewGuid();
@@ -42,7 +42,8 @@
                         }
                         catch (Exception ex)
                         {
-                            LOG.Error(ex);
+                            //LOG.Error(ex);
+                            Logger.Write(ex.Message,MsgType.Error);
                         }
                     };
                 nodes[i] = leader;
@@ -68,7 +69,7 @@
 
             if (count > 1)
             {
-                LOG.Debug("Now killing the leader");
+                //LOG.Debug("Now killing the leader");
                 // now lets kill the leader
                 var firstReleased = new ManualResetEvent(false);
                 var secondAcquired = new ManualResetEvent(false);
@@ -95,7 +96,7 @@
             for (int i = 0; i < count; i++)
             {
                 WriteLock node = nodes[i];
-                LOG.Debug("node: " + i + " id: " + node.Id + " is leader: " + node.Owner);
+                //LOG.Debug("node: " + i + " id: " + node.Id + " is leader: " + node.Owner);
             }
         }
 
@@ -110,7 +111,7 @@
                     if (node == null) 
                         continue;
 
-                    LOG.Debug("Closing node: " + i);
+                    //LOG.Debug("Closing node: " + i);
                     node.Dispose();
                     //if (i == nodes.Length - 1)
                     //{
@@ -118,9 +119,9 @@
                     //}
                     //else
                     //{
-                        LOG.Debug("Closing zookeeper: " + i);
+                        //LOG.Debug("Closing zookeeper: " + i);
                         node.Zookeeper.Dispose();
-                        LOG.Debug("Closed zookeeper: " + i);
+                       // LOG.Debug("Closed zookeeper: " + i);
                     //}
                 }
             }

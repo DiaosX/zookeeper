@@ -20,16 +20,16 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using log4net;
     using Org.Apache.Jute;
     using Org.Apache.Zookeeper.Data;
     using System.Text;
     using System.Collections.Concurrent;
     using System.Threading;
+    using ZooKeeperNet.Log;
 
     public class DataTree
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(DataTree));
+        //private static readonly ILog LOG = LogManager.GetLogger(typeof(DataTree));
 
         private readonly Dictionary<string, DataNode> nodes = new Dictionary<string, DataNode>();
 
@@ -118,7 +118,9 @@
             List<ACL> acls;
             if (!longKeyMap.TryGetValue(longVal, out acls))
             {
-                LOG.ErrorFormat("ERROR: ACL not available for long {0}", longVal);
+                //LOG.ErrorFormat("ERROR: ACL not available for long {0}", longVal);
+                Logger.Write(string.Format("ERROR: ACL not available for long {0}", longVal), MsgType.Error);
+
                 throw new InvalidOperationException(new StringBuilder("Failed to fetch acls for ").Append(longVal).ToString());
             }
             return acls;

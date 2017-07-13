@@ -1,11 +1,11 @@
 ﻿namespace ZooKeeperNet.Recipes
 {
     using System;
-    using log4net;
+    using ZooKeeperNet.Log;
 
     public class ZNodeName : IComparable<ZNodeName>, IEquatable<ZNodeName>
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(ZNodeName));        
+        //private static readonly ILog LOG = LogManager.GetLogger(typeof(ZNodeName));        
         private readonly int sequence;
 
         public ZNodeName(string name)
@@ -21,7 +21,8 @@
                 Prefix = name.Substring(0, idx);
                 if (!Int32.TryParse(name.Substring(idx + 1), out sequence))
                 {
-                    LOG.Info("Could not parse number for " + idx);
+                    //LOG.Info("Could not parse number for " + idx);
+                    Logger.Write("Could not parse number for " + idx, MsgType.Information);
                     sequence = -1;
                 }
             }
@@ -29,7 +30,7 @@
 
         public string Name { get; set; }
         protected string Prefix { get; set; }
-        
+
         protected int NodeName
         {
             get
@@ -54,8 +55,8 @@
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != typeof (ZNodeName)) return false;
-            return Equals((ZNodeName) obj);
+            if (obj.GetType() != typeof(ZNodeName)) return false;
+            return Equals((ZNodeName)obj);
         }
 
         public override int GetHashCode()

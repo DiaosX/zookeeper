@@ -15,8 +15,7 @@
  *  limitations under the License.
  *
  */
-﻿using System.Collections.Generic;
-﻿using log4net;
+using System.Collections.Generic;
 
 namespace ZooKeeperNet
 {
@@ -24,10 +23,11 @@ namespace ZooKeeperNet
     using System.Text;
     using System.Threading;
     using System.Linq;
+    using ZooKeeperNet.Log;
 
     public static class ZooKeeperEx
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(ZooKeeperEx));
+        //private static readonly ILog LOG = LogManager.GetLogger(typeof(ZooKeeperEx));
 
         public static TValue GetAndRemove<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         {
@@ -98,9 +98,9 @@ namespace ZooKeeperNet
                 }
                 catch (Exception ex)
                 {
-                    LOG.WarnFormat("Error disposing {0} : {1}", this.GetType().FullName, ex.Message);
+                    //LOG.WarnFormat("Error disposing {0} : {1}", this.GetType().FullName, ex.Message);
+                    Logger.Write(string.Format("Error disposing {0} : {1}", this.GetType().FullName, ex.Message));
                 }
-                
             }
         }
 
@@ -115,7 +115,7 @@ namespace ZooKeeperNet
 
             private static void Dispose(bool isDisposing)
             {
-                if(!isDisposing)
+                if (!isDisposing)
                     throw new InvalidOperationException("Lock not properly disposed.");
             }
 

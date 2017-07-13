@@ -18,15 +18,16 @@
 namespace ZooKeeperNet.Tests
 {
     using System;
+    using System.Configuration;
     using System.Runtime.CompilerServices;
     using System.Threading;
-    using log4net.Config;
 
     public abstract class AbstractZooKeeperTests
     {
+        static string _zkAddress = ConfigurationManager.AppSettings["zk_address"];
         static AbstractZooKeeperTests()
         {
-            XmlConfigurator.Configure();    
+            //XmlConfigurator.Configure();    
         }
 
         protected static readonly TimeSpan CONNECTION_TIMEOUT = new TimeSpan(0, 0, 0, 0, 10000);
@@ -34,18 +35,18 @@ namespace ZooKeeperNet.Tests
         protected virtual ZooKeeper CreateClient()
         {
             CountdownWatcher watcher = new CountdownWatcher();
-            return new ZooKeeper("127.0.0.1:2181", new TimeSpan(0, 0, 0, 10000), watcher);
+            return new ZooKeeper(_zkAddress, new TimeSpan(0, 0, 0, 10000), watcher);
         }
 
         protected virtual ZooKeeper CreateClient(string node)
         {
             CountdownWatcher watcher = new CountdownWatcher();
-            return new ZooKeeper("127.0.0.1:2181" + node, new TimeSpan(0, 0, 0, 10000), watcher);
+            return new ZooKeeper(_zkAddress + node, new TimeSpan(0, 0, 0, 10000), watcher);
         }
 
         protected ZooKeeper CreateClient(IWatcher watcher)
         {
-            return new ZooKeeper("127.0.0.1:2181", new TimeSpan(0, 0, 0, 10000), watcher);
+            return new ZooKeeper(_zkAddress, new TimeSpan(0, 0, 0, 10000), watcher);
         }
 
         protected ZooKeeper CreateClientWithAddress(string address)

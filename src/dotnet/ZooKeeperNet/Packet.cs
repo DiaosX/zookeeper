@@ -22,14 +22,14 @@ namespace ZooKeeperNet
     using System.IO;
     using System.Text;
     using System.Threading;
-    using log4net;
     using Org.Apache.Jute;
     using Org.Apache.Zookeeper.Proto;
     using System;
+    using ZooKeeperNet.Log;
 
     public class Packet
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(Packet));
+        //private static readonly ILog LOG = LogManager.GetLogger(typeof(Packet));
 
         internal RequestHeader header;
         private string serverPath;
@@ -56,7 +56,7 @@ namespace ZooKeeperNet
             if (data != null)
             {
                 this.data = data;
-            } 
+            }
             else
             {
                 try
@@ -66,14 +66,14 @@ namespace ZooKeeperNet
                     {
                         BinaryOutputArchive boa = BinaryOutputArchive.getArchive(writer);
                         boa.WriteInt(-1, "len"); // We'll fill this in later
-                        if(header != null)
+                        if (header != null)
                         {
                             header.Serialize(boa, "header");
                         }
                         if (request != null)
                         {
                             request.Serialize(boa, "request");
-                        }                        
+                        }
                         ms.Position = 0;
                         int len = Convert.ToInt32(ms.Length); // now we have the real length
                         writer.Write(len - 4); // update the length info
@@ -82,7 +82,8 @@ namespace ZooKeeperNet
                 }
                 catch (IOException e)
                 {
-                    LOG.Warn("Ignoring unexpected exception", e);
+                    //LOG.Warn("Ignoring unexpected exception", e);
+                    Logger.Write(string.Format("Ignoring unexpected exception,{0}", e.Message));
                 }
             }
             this.watchRegistration = watchRegistration;

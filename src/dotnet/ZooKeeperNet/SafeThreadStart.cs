@@ -16,15 +16,15 @@
  *
  */
 ﻿using System;
+using ZooKeeperNet.Log;
 
 namespace ZooKeeperNet
 {
-    using log4net;
 
     public class SafeThreadStart
     {
         private readonly Action action;
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(SafeThreadStart));
+       // private static readonly ILog LOG = LogManager.GetLogger(typeof(SafeThreadStart));
 
         public SafeThreadStart(Action action)
         {
@@ -39,7 +39,9 @@ namespace ZooKeeperNet
             }
             catch (Exception e)
             {
-                LOG.Error("Unhandled exception in background thread", e);
+                Logger.Write(string.Format("Unhandled exception in background thread,{0}", e.Message));
+
+                //LOG.Error("Unhandled exception in background thread", e);
             }            
         }
     }

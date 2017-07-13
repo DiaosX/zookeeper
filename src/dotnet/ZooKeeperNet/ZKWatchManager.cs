@@ -15,18 +15,18 @@
  *  limitations under the License.
  *
  */
-﻿namespace ZooKeeperNet
+namespace ZooKeeperNet
 {
     using System;
     using System.Collections.Generic;
-    using log4net;
     using System.Text;
     using System.Collections.Concurrent;
     using System.Threading;
+    using ZooKeeperNet.Log;
 
-    public class ZKWatchManager : IClientWatchManager 
+    public class ZKWatchManager : IClientWatchManager
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(ZKWatchManager));
+        //private static readonly ILog LOG = LogManager.GetLogger(typeof(ZKWatchManager));
 
         internal readonly ConcurrentDictionary<string, HashSet<IWatcher>> dataWatches = new ConcurrentDictionary<string, HashSet<IWatcher>>();
         internal readonly ConcurrentDictionary<string, HashSet<IWatcher>> existWatches = new ConcurrentDictionary<string, HashSet<IWatcher>>();
@@ -45,7 +45,8 @@
             }
         }
 
-        private static void AddTo(HashSet<IWatcher> from, HashSet<IWatcher> to) {
+        private static void AddTo(HashSet<IWatcher> from, HashSet<IWatcher> to)
+        {
             if (from == null) return;
             to.UnionWith(from);
         }
@@ -54,16 +55,20 @@
         {
             HashSet<IWatcher> result = new HashSet<IWatcher>();
 
-            switch (type) {
+            switch (type)
+            {
                 case EventType.None:
                     result.Add(defaultWatcher);
-                    foreach (var ws in dataWatches.Values) {
+                    foreach (var ws in dataWatches.Values)
+                    {
                         result.UnionWith(ws);
                     }
-                    foreach (var ws in existWatches.Values) {
+                    foreach (var ws in existWatches.Values)
+                    {
                         result.UnionWith(ws);
                     }
-                    foreach(var ws in childWatches.Values) {
+                    foreach (var ws in childWatches.Values)
+                    {
                         result.UnionWith(ws);
                     }
 
@@ -79,25 +84,29 @@
                     return result;
                 case EventType.NodeDataChanged:
                 case EventType.NodeCreated:
-                        AddTo(dataWatches.GetAndRemove(clientPath), result);
-                        AddTo(existWatches.GetAndRemove(clientPath), result);
+                    AddTo(dataWatches.GetAndRemove(clientPath), result);
+                    AddTo(existWatches.GetAndRemove(clientPath), result);
                     break;
                 case EventType.NodeChildrenChanged:
-                        AddTo(childWatches.GetAndRemove(clientPath), result);
+                    AddTo(childWatches.GetAndRemove(clientPath), result);
                     break;
                 case EventType.NodeDeleted:
-                        AddTo(dataWatches.GetAndRemove(clientPath), result);
+                    AddTo(dataWatches.GetAndRemove(clientPath), result);
                     // XXX This shouldn't be needed, but just in case
-                        HashSet<IWatcher> list = existWatches.GetAndRemove(clientPath);
-                        if (list != null) {
-                            AddTo(existWatches.GetAndRemove(clientPath), result);
-                            LOG.Warn("We are triggering an exists watch for delete! Shouldn't happen!");
-                        }
-                        AddTo(childWatches.GetAndRemove(clientPath), result);
+                    HashSet<IWatcher> list = existWatches.GetAndRemove(clientPath);
+                    if (list != null)
+                    {
+                        AddTo(existWatches.GetAndRemove(clientPath), result);
+                        //LOG.Warn("We are triggering an exists watch for delete! Shouldn't happen!");
+                        Logger.Write("We are triggering an exists watch for delete! Shouldn't happen!",MsgType.Warning);
+
+                    }
+                    AddTo(childWatches.GetAndRemove(clientPath), result);
                     break;
                 default:
                     var msg = new StringBuilder("Unhandled watch event type ").Append(type).Append(" with state ").Append(state).Append(" on path ").Append(clientPath).ToString();
-                    LOG.Error(msg);
+                    //LOG.Error(msg);
+                    Logger.Write(msg, MsgType.Error);
                     throw new InvalidOperationException(msg);
             }
 

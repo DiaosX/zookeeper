@@ -15,24 +15,24 @@
  *  limitations under the License.
  *
  */
-﻿namespace ZooKeeperNet
+namespace ZooKeeperNet
 {
     using System;
     using System.Collections.Concurrent;
     using System.Threading;
-    using log4net;
     using System.Text;
     using System.Collections.Generic;
+    using ZooKeeperNet.Log;
 
     public class ClientConnectionEventConsumer : IStartable, IDisposable
     {
-        private static readonly ILog LOG = LogManager.GetLogger(typeof(ClientConnectionEventConsumer));
+        //private static readonly ILog LOG = LogManager.GetLogger(typeof(ClientConnectionEventConsumer));
 
         private readonly ClientConnection conn;
         private readonly Thread eventThread;
         //ConcurrentQueue gives us the non-blocking way of processing, it reduced the contention so much
         internal readonly BlockingCollection<ClientConnection.WatcherSetEventPair> waitingEvents = new BlockingCollection<ClientConnection.WatcherSetEventPair>();
-        
+
         /** This is really the queued session state until the event
          * thread actually processes the event and hands it to the watcher.
          * But for all intents and purposes this is the state.
@@ -50,7 +50,7 @@
             eventThread.Start();
         }
 
-        private static void ProcessWatcher(IEnumerable<IWatcher> watchers,WatchedEvent watchedEvent)
+        private static void ProcessWatcher(IEnumerable<IWatcher> watchers, WatchedEvent watchedEvent)
         {
             foreach (IWatcher watcher in watchers)
             {
@@ -63,7 +63,8 @@
                 }
                 catch (Exception t)
                 {
-                    LOG.Error("Error while calling watcher ", t);
+                    //LOG.Error("Error while calling watcher ", t);
+                    Logger.Write(string.Format("Error while calling watcher,{0}", t.Message), MsgType.Error);
                 }
             }
         }
@@ -72,7 +73,7 @@
         {
             try
             {
-                while(!waitingEvents.IsCompleted)
+                while (!waitingEvents.IsCompleted)
                 {
                     try
                     {
@@ -94,16 +95,21 @@
                     }
                     catch (Exception t)
                     {
-                        LOG.Error("Caught unexpected throwable", t);
+                        // LOG.Error("Caught unexpected throwable", t);
+                        Logger.Write(string.Format("Caught unexpected throwable,{0}", t.Message), MsgType.Error);
+
                     }
                 }
             }
             catch (ThreadInterruptedException e)
             {
-                LOG.Error("Event thread exiting due to interruption", e);
+                //LOG.Error("Event thread exiting due to interruption", e);
+                Logger.Write(string.Format("Event thread exiting due to interruption,{0}", e.Message), MsgType.Error);
+
             }
 
-            LOG.Info("EventThread shut down");
+            //LOG.Info("EventThread shut down");
+            Logger.Write("EventThread shut down");
         }
 
         public void QueueEvent(WatchedEvent @event)
@@ -112,11 +118,11 @@
 
             if (waitingEvents.IsAddingCompleted)
                 throw new InvalidOperationException("consumer has been disposed");
-            
+
             sessionState = @event.State;
 
             // materialize the watchers based on the event
-            var pair = new ClientConnection.WatcherSetEventPair(conn.watcher.Materialize(@event.State, @event.Type,@event.Path), @event);
+            var pair = new ClientConnection.WatcherSetEventPair(conn.watcher.Materialize(@event.State, @event.Type, @event.Path), @event);
             // queue the pair (watch set & event) for later processing
             waitingEvents.Add(pair);
         }
@@ -137,7 +143,8 @@
                 }
                 catch (Exception ex)
                 {
-                    LOG.WarnFormat("Error disposing {0} : {1}", this.GetType().FullName, ex.Message);
+                    //LOG.WarnFormat("Error disposing {0} : {1}", this.GetType().FullName, ex.Message);
+                    Logger.Write(string.Format("Error disposing {0} : {1}", this.GetType().FullName, ex.Message), MsgType.Error);
                 }
             }
         }

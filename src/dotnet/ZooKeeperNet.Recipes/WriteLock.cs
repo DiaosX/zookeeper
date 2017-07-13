@@ -6,6 +6,7 @@
     using System.Runtime.CompilerServices;
     using System.Threading;
     using Org.Apache.Zookeeper.Data;
+    using ZooKeeperNet.Log;
 
     public class WriteLock : ProtocolSupport
     {
@@ -76,7 +77,8 @@
             }
             catch (KeeperException e)
             {
-                LOG.WarnFormat("Caught: {0} {1}",e, e.StackTrace);
+                //LOG.WarnFormat("Caught: {0} {1}",e, e.StackTrace);
+                Logger.Write(string.Format("Caught: {0} {1}", e.Message, e.StackTrace),MsgType.Warning);
                 throw;
             }
             finally
@@ -103,7 +105,8 @@
                 var names = Zookeeper.GetChildren(dir, false);
                 if (names.IsEmpty())
                 {
-                    LOG.WarnFormat("No children in: {0} when we've just created one! Lets recreate it...",dir);
+                    //LOG.WarnFormat("No children in: {0} when we've just created one! Lets recreate it...",dir);
+                    Logger.Write(string.Format("No children in: {0} when we've just created one! Lets recreate it...", dir),MsgType.Warning);
                     // lets force the recreation of the id
                     id = null;
                 }
@@ -121,17 +124,18 @@
                     {
                         ZNodeName lastChildName = lessThanMe.Last();
                         lastChildId = lastChildName.Name;
-                        if (LOG.IsDebugEnabled)
-                        {
-                            LOG.DebugFormat("watching less than me node: {0}", lastChildId);
-                        }
+                        //if (LOG.IsDebugEnabled)
+                        //{
+                        //    LOG.DebugFormat("watching less than me node: {0}", lastChildId);
+                        //}
                         Stat stat = Zookeeper.Exists(lastChildId, new LockWatcher(this));
                         if (stat != null)
                         {
                             return false;
                         }
-                            
-                        LOG.WarnFormat("Could not find the stats for less than me: {0}", lastChildName.Name);
+
+                        //LOG.WarnFormat("Could not find the stats for less than me: {0}", lastChildName.Name);
+                        Logger.Write(string.Format("Could not find the stats for less than me: {0}", lastChildName.Name), MsgType.Warning);
                     }
                     else
                     {
@@ -154,10 +158,10 @@
                 if (name.StartsWith(prefix))
                 {
                     id = name;
-                    if (LOG.IsDebugEnabled)
-                    {
-                        LOG.DebugFormat("Found id created last time: {0}",id);
-                    }
+                    //if (LOG.IsDebugEnabled)
+                    //{
+                    //    LOG.DebugFormat("Found id created last time: {0}",id);
+                    //}
                     break;
                 }
             }
@@ -165,10 +169,10 @@
             {
                 id = zookeeper.Create(dir.Combine(prefix), data, Acl, CreateMode.EphemeralSequential);
 
-                if (LOG.IsDebugEnabled)
-                {
-                    LOG.DebugFormat("Created id: {0}",id);
-                }
+                //if (LOG.IsDebugEnabled)
+                //{
+                //    LOG.DebugFormat("Created id: {0}",id);
+                //}
             }
 
         }
@@ -201,15 +205,16 @@
 
             public void Process(WatchedEvent @event)
             {
-                if (LOG.IsDebugEnabled)
-                    LOG.DebugFormat("Watcher fired on path: {0} state: {1} type {2}", @event.Path, @event.State, @event.Type);
+                //if (LOG.IsDebugEnabled)
+                //    LOG.DebugFormat("Watcher fired on path: {0} state: {1} type {2}", @event.Path, @event.State, @event.Type);
                 try
                 {
                     writeLock.Lock();
                 }
                 catch (Exception e)
                 {
-                    LOG.WarnFormat("Failed to acquire lock: {0} {1}", e, e.StackTrace);
+                    //LOG.WarnFormat("Failed to acquire lock: {0} {1}", e, e.StackTrace);
+                    Logger.Write(string.Format("Failed to acquire lock: {0} {1}", e.Message, e.StackTrace),MsgType.Warning);
                 }
             }
         }

@@ -57,18 +57,18 @@ namespace ZooKeeperNet.Recipes {
 			foreach (string name in names) {
 				if (name.StartsWith(prefix)) {
 					id = name;
-					if (LOG.IsDebugEnabled) {
-						LOG.DebugFormat("Found id created last time: {0}", id);
-					}
+					//if (LOG.IsDebugEnabled) {
+					//	LOG.DebugFormat("Found id created last time: {0}", id);
+					//}
 				}
 			}
 
 			if (id == null) {
 				id = Zookeeper.Create(path.Combine(prefix), data, Acl, CreateMode.EphemeralSequential);
 
-				if (LOG.IsDebugEnabled) {
-					LOG.DebugFormat("Created id: {0}", id);
-				}
+				//if (LOG.IsDebugEnabled) {
+				//	LOG.DebugFormat("Created id: {0}", id);
+				//}
 			}
 
 			idName = new ZNodeName(id);

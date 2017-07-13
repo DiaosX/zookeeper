@@ -17,15 +17,15 @@
  */
 using System;
 using System.Threading;
-using log4net;
 using NUnit.Framework;
 using Org.Apache.Zookeeper.Data;
+using ZooKeeperNet.Log;
 
 namespace ZooKeeperNet.Tests
 {
     public class RecoveryTest : AbstractZooKeeperTests, IWatcher
     {
-        private readonly ILog LOG = LogManager.GetLogger(typeof(RecoveryTest));
+        //private readonly ILog LOG = LogManager.GetLogger(typeof(RecoveryTest));
         private int setDataCount;
         private int processCount;
         private readonly string testPath = "/unittests/recoverytests/" + Guid.NewGuid();
@@ -36,24 +36,33 @@ namespace ZooKeeperNet.Tests
             using (CancellationTokenSource token = new CancellationTokenSource())
             {
                 Thread thread = new Thread(Run)
-                    {
-                        IsBackground = true,
-                        Name = "RecoveryTest.Run"
-                    };
+                {
+                    IsBackground = true,
+                    Name = "RecoveryTest.Run"
+                };
                 thread.Start(token.Token);
-                Thread.Sleep(15*1000);
-                LOG.Error("STOP ZK!!!! Count: " + processCount);
-                Thread.Sleep(20*1000);
-                LOG.Error("START ZK!!! Count: " + processCount);
-                Thread.Sleep(30*1000);
-                LOG.Error("Stopping ZK client.");
+                Thread.Sleep(15 * 1000);
+                //LOG.Error("STOP ZK!!!! Count: " + processCount);
+                Logger.Write("STOP ZK!!!! Count: " + processCount, MsgType.Error);
+                Thread.Sleep(20 * 1000);
+                //LOG.Error("START ZK!!! Count: " + processCount);
+                Logger.Write("START ZK!!! Count: " + processCount, MsgType.Error);
+
+                Thread.Sleep(30 * 1000);
+                //LOG.Error("Stopping ZK client.");
+                Logger.Write("Stopping ZK client. ", MsgType.Error);
+
                 token.Cancel();
-                LOG.Error("Waiting for thread to stop..." + processCount);
+                //LOG.Error("Waiting for thread to stop..." + processCount);
+                Logger.Write("Waiting for thread to stop..." + processCount, MsgType.Error);
+
                 thread.Join();
                 if (thread.IsAlive)
                     Assert.Fail("Thread still alive");
                 Assert.AreEqual(setDataCount, processCount, "setDataCount == processCount");
-                LOG.Error("Finished:" + setDataCount + ":" + processCount);
+                //LOG.Error("Finished:" + setDataCount + ":" + processCount);
+                Logger.Write("Finished:" + setDataCount + ":" + processCount, MsgType.Error);
+
             }
         }
 
@@ -67,12 +76,12 @@ namespace ZooKeeperNet.Tests
                     Stat stat = new Stat();
                     if (zooKeeper.Exists("/unittests/recoverytests", false) == null)
                     {
-                        zooKeeper.Create("/unittests", new byte[] {0}, Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
-                        zooKeeper.Create("/unittests/recoverytests", new byte[] {0}, Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
+                        zooKeeper.Create("/unittests", new byte[] { 0 }, Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
+                        zooKeeper.Create("/unittests/recoverytests", new byte[] { 0 }, Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
                     }
                     if (zooKeeper.Exists(testPath, false) == null)
-                    {   
-                        zooKeeper.Create(testPath, new byte[] {0}, Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
+                    {
+                        zooKeeper.Create(testPath, new byte[] { 0 }, Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
                     }
                     while (zooKeeper.State.IsAlive() && !token.IsCancellationRequested)
                     {
@@ -82,23 +91,28 @@ namespace ZooKeeperNet.Tests
                             zooKeeper.SetData(testPath, Guid.NewGuid().ToByteArray(), -1);
                             setDataCount++;
                         }
-                        catch(KeeperException ke)
+                        catch (KeeperException ke)
                         {
-                            LOG.Error(ke);
+                            //LOG.Error(ke);
+                            Logger.Write(ke.Message, MsgType.Error);
                         }
                     }
-                    LOG.Error("Waiting for dispose.");
+                    //LOG.Error("Waiting for dispose.");
+                    Logger.Write("Waiting for dispose.", MsgType.Error);
+
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                LOG.Error(ex);
+                //LOG.Error(ex);
+                Logger.Write(ex.Message, MsgType.Error);
+
             }
         }
 
         public void Process(WatchedEvent @event)
         {
-            LOG.Debug(@event);
+            //LOG.Debug(@event);
             if (@event.Type == EventType.NodeCreated || @event.Type == EventType.NodeDataChanged)
             {
                 Interlocked.Increment(ref processCount);
